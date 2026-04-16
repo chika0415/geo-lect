@@ -3,7 +3,8 @@ import google.generativeai as genai
 
 # Geminiの設定
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-model = genai.GenerativeModel('gemini-1.5-flash')
+# 'gemini-1.5-flash' を 'gemini-1.5-flash-latest' に変えてみる
+model = genai.GenerativeModel('gemini-1.5-flash-latest')
 
 # Geminiへの指示（ここで内容をコントロールします）
 prompt = """
