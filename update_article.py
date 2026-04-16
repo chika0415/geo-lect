@@ -1,28 +1,29 @@
 import os
 import google.generativeai as genai
 
-# Geminiの設定
+# 1. まずAPIキーを設定（これは必須！）
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-# それでもダメなら Pro 版を試す
-model = genai.GenerativeModel('gemini-1.5-pro')
 
-# Geminiへの指示（ここで内容をコントロールします）
-prompt = """
-以下の条件で、最新の地政学・経済ニュースに基づいた英語学習コンテンツを作成してください。
-トピック: ベトナムのエネルギー危機と地政学リスク
-条件: 英語と日本語の対訳を3つ、重要単語4つ。
-出力形式: そのままHTMLの <div id="articleContent">〜</div> の中身として使える形式で。
-見出し（日米）も含めて。
-"""
+# 2. ここでデバッグ用のコードを入れる
+print("--- 利用可能なモデル一覧 ---")
+for m in genai.list_models():
+    print(m.name)
+print("---------------------------")
 
-response = model.generate_content(prompt)
+# 3. モデルの指定（エラーが出る場合は、上のログに出た名前に書き換える）
+# 2026年現在、'models/gemini-1.5-flash-latest' や 'models/gemini-2.0-flash' 
+# などが候補になります。
+try:
+    model = genai.GenerativeModel('gemini-1.5-flash-latest')
+    
+    # 記事生成のプロンプト
+    prompt = "ベトナムの原油危機をテーマに、英語・日本語の見出し、対訳、重要単語リストをHTML形式で作成して。"
+    response = model.generate_content(prompt)
 
-# HTMLファイルの読み込み
-with open("index.html", "r", encoding="utf-8") as f:
-    html = f.read()
+    # index.htmlに書き込み
+    with open("index.html", "w", encoding="utf-8") as f:
+        f.write(response.text)
+    print("記事の更新に成功しました！")
 
-# ここで「前回の記事」を「新しい記事」に置換する処理を入れます
-# （簡易的な実装として、特定のタグの間を入れ替える仕組み）
-# ※最初はGeminiにHTML全文を再生成させるのが一番簡単です
-with open("index.html", "w", encoding="utf-8") as f:
-    f.write(response.text) # GeminiにHTMLをまるごと出力させる設定
+except Exception as e:
+    print(f"エラーが発生しました: {e}")
