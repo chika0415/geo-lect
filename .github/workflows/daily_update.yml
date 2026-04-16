@@ -1,0 +1,29 @@
+name: Daily Article Update
+on:
+  schedule:
+    # 毎日 UTC 9:00（日本時間18:00）と 21:00（日本時間06:00）に実行
+    - cron: '0 9,21 * * *'
+  workflow_dispatch: # 手動でいつでも実行できるように残しておく
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: pip install google-generativeai
+      - name: Run script
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python update_article.py
+      - name: Commit and Push
+        run: |
+          git config --global user.name "Auto-Bot"
+          git config --global user.email "bot@example.com"
+          git add index.html
+          git commit -m "Update Daily Article"
+          git push
