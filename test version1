@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GEO-LECT | Bilingual Geopolitical Intelligence</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Noto+Sans+JP:wght@400;700;900&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #f8fafc; --text: #0f172a; --card: #ffffff; --border: #e2e8f0; --accent: #dc2626; }
+        .dark { --bg: #1e293b; --text: #f1f5f9; --card: #334155; --border: #475569; --accent: #f87171; }
+        body { background-color: var(--bg); color: var(--text); transition: all 0.3s ease; font-family: 'Inter', 'Noto Sans JP', sans-serif; }
+        .serif { font-family: 'Playfair Display', 'Noto Sans JP', serif; }
+        .card { background-color: var(--card); border: 1px solid var(--border); }
+        .highlight { color: var(--accent); font-weight: bold; border-bottom: 2px solid var(--accent); cursor: help; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="border-b border-slate-500/10 sticky top-0 z-50 backdrop-blur-lg bg-opacity-80">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-3xl font-black tracking-tighter italic serif">GEO-<span class="text-red-600">LECT</span></h1>
+            <div class="flex items-center space-x-4">
+                <div id="badgeDisplay" class="hidden md:block bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1 rounded-full border border-amber-200">Rank: Rising Strategist</div>
+                <button id="modeToggle" class="p-2 rounded-full border border-slate-400">🌙</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-12">
+        <div class="max-w-4xl mb-16">
+            <div class="text-red-600 font-bold mb-4 tracking-widest text-sm sans">● LIVE ANALYSIS: ENERGY SECURITY</div>
+            <h2 class="text-4xl md:text-6xl font-black mb-4 leading-tight serif uppercase tracking-tighter">Vietnam's Energy Fragility</h2>
+            <h3 class="text-2xl md:text-3xl font-bold mb-8 text-slate-500 dark:text-slate-400">ベトナムのエネルギー安全保障：ホルムズ海峡封鎖がもたらす製造業の危機</h3>
+            
+            <div class="flex space-x-4">
+                <button onclick="window.print()" class="text-xs bg-slate-200 dark:bg-slate-700 px-4 py-2 rounded-lg font-bold">📄 PDFレポート出力</button>
+                <button class="text-xs bg-slate-200 dark:bg-slate-700 px-4 py-2 rounded-lg font-bold">🔖 単語帳に保存</button>
+            </div>
+        </div>
+
+        <div class="grid lg:grid-cols-4 gap-12">
+            <div class="lg:col-span-3 space-y-16">
+                
+                <div id="articleContent" class="space-y-12">
+                    <div class="grid md:grid-cols-2 gap-10 pb-10 border-b border-slate-500/10">
+                        <div class="space-y-4">
+                            <p class="text-xl leading-relaxed serif">
+                                The <span class="highlight">tightening noose</span> around the Strait of Hormuz has created an unprecedented <span class="highlight">bottleneck</span>. For Vietnam’s export-driven economy, this geopolitical friction is an immediate crisis.
+                            </p>
+                            <button onclick="playText(this)" class="text-xs text-blue-500 font-bold uppercase">🔊 Listen to English</button>
+                        </div>
+                        <div class="text-lg opacity-70 leading-relaxed border-l-4 border-red-600/30 pl-6">
+                            ホルムズ海峡をめぐる<span class="highlight">実質的な封鎖（締め付け）</span>は、前例のない<span class="highlight">ボトルネック</span>を生み出しました。輸出主導のベトナム経済にとって、この地政学的摩擦は目前の危機です。
+                        </div>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-10 pb-10 border-b border-slate-500/10">
+                        <div class="space-y-4">
+                            <p class="text-xl leading-relaxed serif">
+                                Institutional investors are <span class="highlight">hedging against</span> further volatility. This crisis highlights the <span class="highlight">vulnerability</span> of relying on fossil fuels from unstable regions.
+                            </p>
+                            <button onclick="playText(this)" class="text-xs text-blue-500 font-bold uppercase">🔊 Listen to English</button>
+                        </div>
+                        <div class="text-lg opacity-70 leading-relaxed border-l-4 border-red-600/30 pl-6">
+                            機関投資家はさらなるボラティリティに備えて<span class="highlight">ヘッジを行って</span>います。この危機は、不安定な地域からの化石燃料に依存する<span class="highlight">脆弱性</span>を浮き彫りにしました。
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card rounded-3xl p-8 border-l-8 border-blue-600 bg-blue-600/5">
+                    <h4 class="text-xl font-bold mb-3">🤖 Gemini's Strategy Advice | 投資戦略アドバイス</h4>
+                    <p class="leading-relaxed opacity-80">
+                        「短期的にはベトナムドンの下落と製造コスト増に警戒が必要ですが、中長期的にはインフラの脱ロシア・中東依存が進むため、再エネセクターへの投資機会と捉えるべきです。」
+                    </p>
+                </div>
+
+                <div class="card rounded-3xl p-10 text-center shadow-xl">
+                    <h4 class="text-2xl font-bold mb-4">🎙️ Pronunciation Check | 発音分析</h4>
+                    <p class="mb-8 text-sm opacity-60">マイクボタンを押して、上の英文を音読してください。</p>
+                    <button id="recordBtn" onclick="startRecognition()" class="bg-red-600 text-white px-10 py-4 rounded-full font-bold hover:scale-105 transition shadow-lg">録音を開始する</button>
+                    <div id="feedback" class="mt-8 hidden p-6 bg-green-500/10 text-green-600 rounded-2xl font-bold">
+                        分析完了：正確性 94%。"Volatility" の発音が非常にクリアです！ +10 EXP
+                    </div>
+                </div>
+            </div>
+
+            <aside class="space-y-8">
+                <div class="card p-6 rounded-2xl sticky top-24">
+                    <h4 class="font-bold mb-6 text-xs uppercase tracking-widest text-red-600 border-b pb-2">Key Vocabulary | 重要単語</h4>
+                    <ul class="space-y-6">
+                        <li>
+                            <p class="text-sm font-black tracking-tight">Tightening Noose</p>
+                            <p class="text-xs opacity-50 mt-1">実質的な封鎖、締め付け</p>
+                        </li>
+                        <li>
+                            <p class="text-sm font-black tracking-tight">Bottleneck</p>
+                            <p class="text-xs opacity-50 mt-1">障害、進行を妨げる場所</p>
+                        </li>
+                        <li>
+                            <p class="text-sm font-black tracking-tight">Hedge against</p>
+                            <p class="text-xs opacity-50 mt-1">〜に備えて防衛策を講じる</p>
+                        </li>
+                        <li>
+                            <p class="text-sm font-black tracking-tight">Vulnerability</p>
+                            <p class="text-xs opacity-50 mt-1">脆弱性、弱さ</p>
+                        </li>
+                    </ul>
+                    <button class="w-full mt-8 bg-slate-900 text-white dark:bg-white dark:text-slate-900 py-3 rounded-xl text-xs font-bold">全単語をテストする</button>
+                </div>
+            </aside>
+        </div>
+
+        <section class="mt-32">
+            <h3 class="text-3xl font-bold mb-10 serif">Latest Intelligence | 関連ニュース</h3>
+            <div class="flex overflow-x-auto gap-8 pb-10 scrollbar-hide">
+                <div class="min-w-[350px] group cursor-pointer">
+                    <div class="overflow-hidden rounded-3xl mb-4 aspect-video card">
+                        <img src="https://images.unsplash.com/photo-1590615365410-d4194f11a040?auto=format&fit=crop&q=80&w=600" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                    </div>
+                    <h4 class="text-xl font-bold serif leading-snug">The Emu War: A Strategic Defeat<br><span class="text-sm font-normal text-slate-500">エミュー戦争：国家予算を投じた敗北</span></h4>
+                </div>
+                <div class="min-w-[350px] group cursor-pointer">
+                    <div class="overflow-hidden rounded-3xl mb-4 aspect-video card">
+                        <img src="https://images.unsplash.com/photo-1541535650810-10d26f5c2ab3?auto=format&fit=crop&q=80&w=600" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                    </div>
+                    <h4 class="text-xl font-bold serif leading-snug">London Beer Flood: Urban Crisis<br><span class="text-sm font-normal text-slate-500">ロンドン・ビール洪水：インフラの脆弱性</span></h4>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const modeToggle = document.getElementById('modeToggle');
+        modeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark');
+            modeToggle.innerText = document.body.classList.contains('dark') ? '☀️' : '🌙';
+        });
+
+        function playText(btn) {
+            const text = btn.previousElementSibling.innerText;
+            const ut = new SpeechSynthesisUtterance(text);
+            ut.lang = 'en-US';
+            window.speechSynthesis.speak(ut);
+        }
+
+        function startRecognition() {
+            const btn = document.getElementById('recordBtn');
+            btn.innerText = "Listening...";
+            setTimeout(() => {
+                btn.innerText = "録音を開始する";
+                document.getElementById('feedback').classList.remove('hidden');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
