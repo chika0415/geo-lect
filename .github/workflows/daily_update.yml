@@ -24,6 +24,6 @@ jobs:
         run: |
           git config --global user.name "Auto-Bot"
           git config --global user.email "bot@example.com"
-          git add index.html
-          git commit -m "Update Daily Article"
+          git add .  # ← index.html だけでなく、全ての変更（archiveフォルダ等）を追加する
+          git commit -m "Update Article and Archive"
           git push
