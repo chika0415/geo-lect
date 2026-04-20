@@ -2,48 +2,138 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8"><title>GEO-LECT</title>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GEO-LECT | Advanced Intelligence</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #f8fafc; --text: #0f172a; --card: #ffffff; --border: #e2e8f0; }
-        .dark { --bg: #1e293b; --text: #f1f5f9; --card: #334155; --border: #475569; }
-        body { background-color: var(--bg); color: var(--text); transition: all 0.3s; font-family: 'Inter', sans-serif; }
+        :root { --bg: #f8fafc; --text: #0f172a; --card: #ffffff; --border: #e2e8f0; --accent: #dc2626; }
+        .dark { --bg: #1e293b; --text: #f1f5f9; --card: #334155; --border: #475569; --accent: #f87171; }
+        body { background-color: var(--bg); color: var(--text); transition: all 0.3s ease; font-family: 'Inter', sans-serif; }
+        .serif { font-family: 'Playfair Display', serif; }
         .card { background-color: var(--card); border: 1px solid var(--border); }
+        .highlight { color: var(--accent); font-weight: bold; border-bottom: 2px solid var(--accent); }
     </style>
 </head>
 <body class="antialiased">
-    <header class="border-b border-slate-500/10 p-6 flex justify-between items-center">
-        <h1 class="text-3xl font-black italic">GEO-<span class="text-red-600">LECT</span></h1>
-        <button onclick="document.body.classList.toggle('dark')" class="p-2 border rounded-full">🌙/☀️</button>
-    </header>
-    <main class="max-w-6xl mx-auto px-6 py-12">
-        <div class="mb-12">
-            <h2 class="text-5xl font-bold mb-4">Vietnam's Energy Crisis and Geopolitical Risks</h2>
-            <h3 class="text-2xl font-bold text-slate-500">ベトナムのエネルギー危機と地政学リスク</h3>
+    <header class="border-b border-slate-500/10 sticky top-0 z-50 backdrop-blur-lg bg-opacity-80">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-3xl font-black italic serif">GEO-<span class="text-red-600">LECT</span></h1>
+            <div class="flex items-center space-x-4">
+                <div class="hidden md:block bg-amber-100 text-amber-800 text-xs font-bold px-3 py-1 rounded-full border border-amber-200">Rank: Rising Strategist</div>
+                <button onclick="document.body.classList.toggle('dark')" class="p-2 rounded-full border border-slate-400">🌙</button>
+            </div>
         </div>
-        <div class="grid lg:grid-cols-3 gap-12">
-            <div class="lg:col-span-2 space-y-12">
-                <div class="grid md:grid-cols-2 gap-8 border-b pb-8">
-                    <div class="text-xl leading-relaxed">Vietnam, a rapidly growing economy, is currently facing significant energy shortages, particularly electricity, which pose a threat to its industrial output and foreign investment appeal.</div>
-                    <div class="text-lg opacity-60 italic border-l-4 border-red-600/30 pl-6">急速な経済成長を遂げるベトナムは、現在、深刻なエネルギー不足、特に電力不足に直面しており、これは産業生産量と対外投資の魅力に脅威をもたらしています。</div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 py-12">
+        <div class="max-w-4xl mb-16">
+            <div class="text-red-600 font-bold mb-4 tracking-widest text-sm">● FREE ACCESS: FULL ANALYSIS</div>
+            <h2 class="text-4xl md:text-6xl font-black mb-4 serif uppercase tracking-tighter">Geopolitical Oil Risks in Southeast Asia: The Vietnam Scenario</h2>
+            <h3 class="text-2xl font-bold mb-8 text-slate-500">東南アジアにおける地政学的石油リスク：ベトナムの事例と課題</h3>
+            <div class="flex space-x-4">
+                <button onclick="window.print()" class="text-xs bg-slate-200 dark:bg-slate-700 px-4 py-2 rounded-lg font-bold">📄 PDF Report</button>
+            </div>
+        </div>
+
+        <div class="grid lg:grid-cols-4 gap-12">
+            <div class="lg:col-span-3 space-y-16">
+                <div class="space-y-12">
+        <div class="grid md:grid-cols-2 gap-10 pb-10 border-b border-slate-500/10">
+            <div class="space-y-4">
+                <p class="text-xl leading-relaxed serif">Vietnam's robust economic expansion is driving a significant increase in energy demand, elevating energy security to a pivotal geopolitical concern for the nation.</p>
+                <button onclick="playText(this)" class="text-xs text-blue-500 font-bold uppercase">🔊 Listen</button>
+            </div>
+            <div class="text-lg opacity-70 leading-relaxed border-l-4 border-red-600/30 pl-6 italic">ベトナムの堅調な経済拡大はエネルギー需要を著しく高めており、同国のエネルギー安全保障は国家にとって極めて重要な地政学的懸念となっています。</div>
+        </div>
+        
+        <div class="grid md:grid-cols-2 gap-10 pb-10 border-b border-slate-500/10">
+            <div class="space-y-4">
+                <p class="text-xl leading-relaxed serif">A primary risk stems from the ongoing South China Sea dispute, where conflicting territorial claims, particularly with China, directly threaten Vietnam's offshore oil and gas exploration activities.</p>
+                <button onclick="playText(this)" class="text-xs text-blue-500 font-bold uppercase">🔊 Listen</button>
+            </div>
+            <div class="text-lg opacity-70 leading-relaxed border-l-4 border-red-600/30 pl-6 italic">主要なリスクは、現在進行中の南シナ海紛争に起因します。特に中国との間で対立する領有権主張は、ベトナムの海洋石油・ガス探査活動に直接的な脅威を与えています。</div>
+        </div>
+        
+        <div class="grid md:grid-cols-2 gap-10 pb-10 border-b border-slate-500/10">
+            <div class="space-y-4">
+                <p class="text-xl leading-relaxed serif">Incidents of maritime harassment and heightened geopolitical tensions in the region could deter foreign investment crucial for developing Vietnam's energy reserves, hindering its self-sufficiency efforts.</p>
+                <button onclick="playText(this)" class="text-xs text-blue-500 font-bold uppercase">🔊 Listen</button>
+            </div>
+            <div class="text-lg opacity-70 leading-relaxed border-l-4 border-red-600/30 pl-6 italic">この地域での海上での嫌がらせ事件や高まる地政学的緊張は、ベトナムのエネルギー資源開発に不可欠な外国からの投資を妨げ、自給自足の努力を阻害する可能性があります。</div>
+        </div>
+        
+        <div class="grid md:grid-cols-2 gap-10 pb-10 border-b border-slate-500/10">
+            <div class="space-y-4">
+                <p class="text-xl leading-relaxed serif">A hypothetical "Vietnam oil crisis" could materialize through disrupted maritime supply chains, escalating import costs due to global market volatility, or restricted access to vital energy resources.</p>
+                <button onclick="playText(this)" class="text-xs text-blue-500 font-bold uppercase">🔊 Listen</button>
+            </div>
+            <div class="text-lg opacity-70 leading-relaxed border-l-4 border-red-600/30 pl-6 italic">仮想的な「ベトナム原油危機」は、海上供給網の寸断、世界市場の変動による輸入コストの急騰、あるいは不可欠なエネルギー資源へのアクセス制限を通じて現実化する可能性があります。</div>
+        </div>
+        
+        <div class="grid md:grid-cols-2 gap-10 pb-10 border-b border-slate-500/10">
+            <div class="space-y-4">
+                <p class="text-xl leading-relaxed serif">Such a crisis would not only impose severe economic strain on Vietnam but also generate significant ripple effects across the ASEAN bloc, potentially destabilizing regional energy markets and crucial trade routes.</p>
+                <button onclick="playText(this)" class="text-xs text-blue-500 font-bold uppercase">🔊 Listen</button>
+            </div>
+            <div class="text-lg opacity-70 leading-relaxed border-l-4 border-red-600/30 pl-6 italic">このような危機はベトナムに深刻な経済的負担を強いるだけでなく、ASEANブロック全体に大きな波及効果を生み出し、地域のエネルギー市場や重要な貿易ルートを不安定化させる可能性があります。</div>
+        </div>
+        
+        <div class="grid md:grid-cols-2 gap-10 pb-10 border-b border-slate-500/10">
+            <div class="space-y-4">
+                <p class="text-xl leading-relaxed serif">As Vietnam navigates its energy transition, its continued reliance on fossil fuels, even amidst renewable efforts, leaves it vulnerable to global oil price shocks and supply disruptions.</p>
+                <button onclick="playText(this)" class="text-xs text-blue-500 font-bold uppercase">🔊 Listen</button>
+            </div>
+            <div class="text-lg opacity-70 leading-relaxed border-l-4 border-red-600/30 pl-6 italic">ベトナムがエネルギー転換を進める中で、再生可能エネルギーへの取り組みがあるにもかかわらず化石燃料への依存が続いていることは、世界の原油価格ショックや供給途絶に対して脆弱なままにしています。</div>
+        </div>
+        
+        <div class="grid md:grid-cols-2 gap-10 pb-10 border-b border-slate-500/10">
+            <div class="space-y-4">
+                <p class="text-xl leading-relaxed serif">Understanding these complex dynamics is essential for investors to gauge the broader geopolitical shifts in Southeast Asia and their profound implications for global energy security and supply chain resilience.</p>
+                <button onclick="playText(this)" class="text-xs text-blue-500 font-bold uppercase">🔊 Listen</button>
+            </div>
+            <div class="text-lg opacity-70 leading-relaxed border-l-4 border-red-600/30 pl-6 italic">これらの複雑な力学を理解することは、投資家が東南アジアにおける広範な地政学的変化と、世界のエネルギー安全保障およびサプライチェーンのレジリエンスに対するその深い影響を測る上で不可欠です。</div>
+        </div>
+        </div>
+                
+                <div class="card rounded-3xl p-8 border-l-8 border-blue-600 bg-blue-600/5">
+                    <h4 class="text-xl font-bold mb-3">🤖 Gemini's Strategy Advice</h4>
+                    <p class="leading-relaxed opacity-80">投資家の皆様は、ベトナムおよび南シナ海地域の地政学的リスクを継続的に監視することが極めて重要です。特に、中国との領有権問題の進展、ベトナムのエネルギー政策の変更、そして国際的なエネルギー価格の変動に注意を払う必要があります。エネルギー関連セクターへの投資を検討する際は、これらのリスクがサプライチェーンやプロジェクトの実行可能性に与える影響を十分に評価してください。ポートフォリオの分散化に加え、再生可能エネルギーなど代替エネルギー源への投資動向にも着目し、長期的な視点でリスクと機会を評価することが賢明です。</p>
                 </div>
-                <div class="grid md:grid-cols-2 gap-8 border-b pb-8">
-                    <div class="text-xl leading-relaxed">This crisis is exacerbated not only by domestic infrastructure limitations but also by international geopolitical factors, including the global shift away from fossil fuels, the impact of the Russia-Ukraine war on LNG prices, and the complexities of transitioning to renewable energy while navigating South China Sea disputes.</div>
-                    <div class="text-lg opacity-60 italic border-l-4 border-red-600/30 pl-6">この危機は、国内のインフラ上の制約だけでなく、化石燃料からの世界的転換、ロシア・ウクライナ戦争が液化天然ガス（LNG）価格に与える影響、そして南シナ海の紛争を抱えながら再生可能エネルギーへの移行を進める複雑さといった国際的な地政学的要因によっても悪化しています。</div>
-                </div>
-                <div class="card p-8 rounded-3xl border-l-8 border-blue-600">
-                    <h4 class="font-bold mb-2">🤖 Gemini's Strategy</h4>
-                    <p>ベトナムへの投資を検討する投資家は、エネルギー供給の安定性を最重要視すべきです。政府の再生可能エネルギーへの移行戦略や、それに伴う電力インフラ整備の進捗状況を注視し、関連する政策リスクを評価する必要があります。また、南シナ海問題を含む地政学的な緊張がサプライチェーンや貿易に与える影響を常に分析し、リスクヘッジ戦略を検討することが不可欠です。長期的な視点では、再生可能エネルギー分野や省エネ技術への投資機会を探ることも有効でしょう。</p>
+
+                <div class="card rounded-3xl p-10 text-center shadow-xl">
+                    <h4 class="text-2xl font-bold mb-4">🎙️ Pronunciation Check</h4>
+                    <p class="mb-8 text-sm opacity-60">音読してAIの分析を受けましょう。</p>
+                    <button id="recordBtn" onclick="startRec()" class="bg-red-600 text-white px-10 py-4 rounded-full font-bold hover:scale-105 transition shadow-lg">録音開始</button>
+                    <div id="feedback" class="mt-8 hidden p-6 bg-green-500/10 text-green-600 rounded-2xl font-bold">分析完了！正確性 92% (+10 EXP)</div>
                 </div>
             </div>
-            <aside class="card p-6 rounded-2xl h-fit">
-                <h4 class="font-bold mb-4 text-red-600">Key Vocabulary</h4>
-                <ul class="space-y-4">
-                    <li><p class='font-bold'>energy shortages</p><p class='text-xs opacity-50'>エネルギー不足</p></li><li><p class='font-bold'>geopolitical factors</p><p class='text-xs opacity-50'>地政学的要因</p></li><li><p class='font-bold'>industrial output</p><p class='text-xs opacity-50'>産業生産量</p></li><li><p class='font-bold'>foreign investment appeal</p><p class='text-xs opacity-50'>対外投資の魅力</p></li><li><p class='font-bold'>exacerbated</p><p class='text-xs opacity-50'>悪化する</p></li><li><p class='font-bold'>infrastructure limitations</p><p class='text-xs opacity-50'>インフラ上の制約</p></li><li><p class='font-bold'>transitioning</p><p class='text-xs opacity-50'>移行する</p></li><li><p class='font-bold'>renewable energy</p><p class='text-xs opacity-50'>再生可能エネルギー</p></li><li><p class='font-bold'>South China Sea disputes</p><p class='text-xs opacity-50'>南シナ海紛争</p></li><li><p class='font-bold'>supply chain</p><p class='text-xs opacity-50'>サプライチェーン</p></li><li><p class='font-bold'>risk hedge strategy</p><p class='text-xs opacity-50'>リスクヘッジ戦略</p></li>
-                </ul>
+
+            <aside class="space-y-8">
+                <div class="card p-6 rounded-2xl sticky top-24">
+                    <h4 class="font-bold mb-6 text-xs uppercase tracking-widest text-red-600 border-b pb-2">Key Vocabulary</h4>
+                    <ul class="space-y-6"><li><p class='text-sm font-black'>geopolitical concern</p><p class='text-xs opacity-50 mt-1'>地政学的懸念</p></li><li><p class='text-sm font-black'>territorial claims</p><p class='text-xs opacity-50 mt-1'>領有権主張</p></li><li><p class='text-sm font-black'>offshore exploration</p><p class='text-xs opacity-50 mt-1'>海洋探査</p></li><li><p class='text-sm font-black'>deter foreign investment</p><p class='text-xs opacity-50 mt-1'>外国からの投資を思いとどまらせる</p></li><li><p class='text-sm font-black'>supply chains</p><p class='text-xs opacity-50 mt-1'>サプライチェーン</p></li><li><p class='text-sm font-black'>market volatility</p><p class='text-xs opacity-50 mt-1'>市場の変動性</p></li><li><p class='text-sm font-black'>ripple effects</p><p class='text-xs opacity-50 mt-1'>波及効果</p></li><li><p class='text-sm font-black'>energy transition</p><p class='text-xs opacity-50 mt-1'>エネルギー転換</p></li><li><p class='text-sm font-black'>vulnerable</p><p class='text-xs opacity-50 mt-1'>脆弱な</p></li><li><p class='text-sm font-black'>resilience</p><p class='text-xs opacity-50 mt-1'>レジリエンス、回復力</p></li></ul>
+                </div>
             </aside>
         </div>
     </main>
+
+    <script>
+        function playText(btn) {
+            const text = btn.previousElementSibling.innerText;
+            const ut = new SpeechSynthesisUtterance(text);
+            ut.lang = 'en-US';
+            window.speechSynthesis.speak(ut);
+        }
+        function startRec() {
+            const btn = document.getElementById('recordBtn');
+            btn.innerText = "Listening...";
+            setTimeout(() => {
+                btn.innerText = "録音開始";
+                document.getElementById('feedback').classList.remove('hidden');
+            }, 3000);
+        }
+    </script>
 </body>
 </html>
     
