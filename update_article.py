@@ -1,29 +1,39 @@
 import os
 import google.generativeai as genai
 
-# 1. まずAPIキーを設定（これは必須！）
+# APIキー設定
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
 
-# 2. ここでデバッグ用のコードを入れる
-print("--- 利用可能なモデル一覧 ---")
-for m in genai.list_models():
-    print(m.name)
-print("---------------------------")
+# リストにあった「確実に存在するモデル名」を使用します
+model_name = 'models/gemini-2.5-flash' 
+print(f"Using model: {model_name}")
 
-# 3. モデルの指定（エラーが出る場合は、上のログに出た名前に書き換える）
-# 2026年現在、'models/gemini-1.5-flash-latest' や 'models/gemini-2.0-flash' 
-# などが候補になります。
+# モデルの起動
+model = genai.GenerativeModel(model_name)
+
+# 記事生成（HTML形式で出力させる）
+prompt = """
+以下の条件で、最新の地政学・経済ニュースに基づいた英語学習コンテンツをHTML形式で作成してください。
+トピック: ベトナムのエネルギー危機と地政学リスク
+条件: 
+1. 英語の見出しと日本語の見出しを併記。
+2. 英語と日本語の対訳を3つ。
+3. 重要単語リスト。
+出力形式: そのまま index.html として保存可能な完全なHTML形式で（CSSも含めて）。
+"""
+
 try:
-    model = genai.GenerativeModel('gemini-1.5-flash-latest')
-    
-    # 記事生成のプロンプト
-    prompt = "ベトナムの原油危機をテーマに、英語・日本語の見出し、対訳、重要単語リストをHTML形式で作成して。"
     response = model.generate_content(prompt)
-
-    # index.htmlに書き込み
+    
+    # ファイル書き出し
     with open("index.html", "w", encoding="utf-8") as f:
-        f.write(response.text)
-    print("記事の更新に成功しました！")
+        # Geminiの回答からコードブロックの記号（```html ... ```）を掃除して保存
+        content = response.text.replace("```html", "").replace("```", "").strip()
+        f.write(content)
+        
+    print("Successfully wrote index.html!")
 
 except Exception as e:
-    print(f"エラーが発生しました: {e}")
+    print(f"Error during content generation: {e}")
+    # エラーが起きた場合は、わざと異常終了させてGitHubに知らせる
+    exit(1)
