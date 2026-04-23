@@ -1,10 +1,12 @@
 import os
 import json
 import datetime
+import requests # 【追加】 画像ダウンロード用
 import google.generativeai as genai
 
 # --- 1. 初期設定 ---
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+# ログで確認した最新のモデル名を使用
 model = genai.GenerativeModel('models/gemini-2.5-flash')
 
 # --- 2. 時刻の準備 ---
@@ -12,17 +14,17 @@ now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9)))
 display_date = now.strftime("%Y/%m/%d %H:%M")
 date_id = now.strftime("%Y%m%d")
 
-# --- 3. 記事生成プロンプト (SEOキーワード強化) ---
+# --- 3. 記事生成プロンプト (Imagenプロンプト生成を追加) ---
 prompt = f"""
-最新の地政学・経済リスクから、投資家が注目すべきトピックを1つ選び、英語学習教材を作成してください。
-
-以下のJSON形式で厳密に出力してください：
+最新の地政学ニュースを1つ選び、英語学習教材を作成してください。
+以下のJSON形式で厳密に出力してください（余計なテキストは含めないで）：
 {{
-  "en_title": "英語の見出し (SEOに強い具体的なもの)",
+  "en_title": "英語の見出し",
   "jp_title": "日本語の見出し",
-  "seo_description": "この記事の100文字程度の要約",
-  "slug": "タイトルを英語の小文字とハイフンのみで表したもの (例: vietnam-energy-crisis)",
-  "image_query": "その記事に合う写真の検索用英単語1語 (例: 'refinery')",
+  "seo_description": "100文字程度の要約",
+  "slug": "タイトルを英語の小文字とハイフンのみで表現",
+  # 【追加】 AI画像生成用プロンプト (例: 'A photorealistic, cinematic image of...')
+  "imagen_prompt": "A photorealistic, cinematic image related to the topic. [詳細な描写]",
   "segments": [{{"en": "英文", "jp": "和訳"}}],
   "advice": "投資・戦略アドバイス",
   "vocab": [{{"w": "単語", "m": "意味"}}]
@@ -30,45 +32,68 @@ prompt = f"""
 """
 
 try:
+    # Geminiから記事を取得
     response = model.generate_content(prompt)
     raw_json = response.text.replace("```json", "").replace("```", "").strip()
     data = json.loads(raw_json)
 
-    # --- 4. データベース(posts.json)の更新 ---
-    os.makedirs("archive", exist_ok=True)
+    # --- 4. 画像の生成と保存 (根本解決) ---
+    # 画像フォルダの準備
+    os.makedirs("archive/images", exist_ok=True)
+    new_slug = f"{date_id}-{data['slug']}"
+    # リポジトリ内での保存パス
+    image_filename = f"archive/images/{new_slug}.jpg"
+    
+    # 【追加】 AI画像生成 (仮定のコード、sdkの仕様に合わせる)
+    # 今回は requests で静的なURLからダウンロードする形にする。
+    # レート制限を回避するため、静的なURLをプレースホルダーとしてダウンロードする。
+    
+    # AI生成画像っぽいプレースホルダー画像 (例: pollination.ai を使用)
+    placeholder_base_url = "https://pollinations.ai/p/"
+    encoded_prompt = requests.utils.quote(data['imagen_prompt'])
+    ai_placeholder_url = f"{placeholder_base_url}{encoded_prompt}?width=800&height=450&nologo=true&enhance=false"
+    
+    # 画像のダウンロード
+    print(f"Downloading image from: {ai_placeholder_url}")
+    # 保険：もしダウンロードに失敗したら fallback画像にする
+    fallback_static_img_url = "https://images.unsplash.com/photo-1590615365410-d4194f11a040?q=80&w=800"
+    
+    try:
+        img_data = requests.get(ai_placeholder_url, timeout=15).content
+        with open(image_filename, 'wb') as f:
+            f.write(img_data)
+        image_src_path = f"images/{new_slug}.jpg" # HTML内でのローカルパス
+        print(f"Image saved to: {image_filename}")
+    except Exception as img_e:
+        print(f"Failed to download image: {img_e}. Using fallback URL.")
+        image_src_path = fallback_static_img_url # 外部URLのままにする
+
+    # --- 5. データベース(posts.json)の更新 (パスをローカルに) ---
     db_file = "posts.json"
     if os.path.exists(db_file):
         with open(db_file, "r", encoding="utf-8") as f:
             posts = json.load(f)
     else:
         posts = []
-
-    new_slug = f"{date_id}-{data['slug']}"
     
-    # 画像URLを生成（Unsplash + image_query）
-    img_url = f"https://images.unsplash.com/featured/?{data['image_query']}"
-    
-    # 万が一 Unsplash が失敗した場合に備えて、後備（fallback）画像を用意
-    fallback_img_url = "https://images.unsplash.com/photo-1590615365410-d4194f11a040?auto=format&fit=crop&q=80&w=600" # 例: Emu War写真
-
+    # posts.json 内の img パスを修正 (index.html から見たローカルパス)
     new_post = {
         "date_id": date_id,
         "title": data['en_title'],
-        "url": f"archive/{new_slug}.html",
-        "img": img_url,
-        "fallback_img": fallback_img_url
+        "img": image_src_path,
+        "url": f"archive/{new_slug}.html"
     }
     posts.insert(0, new_post)
-    posts = posts[:20] # 最新20件を保持
+    posts = posts[:15] # 最新15件を保存
 
     with open(db_file, "w", encoding="utf-8") as f:
         json.dump(posts, f, ensure_ascii=False, indent=2)
 
-    # --- 5. アーカイブUIの生成 ---
+    # --- 5. パーツの組み立て (カッコ修正は前回のまま踏襲) ---
     archive_cards_html = ""
     for p in posts[1:10]: # 最新以外をアーカイブに
         date_display = p['date_id'][:4] + "/" + p['date_id'][4:6] + "/" + p['date_id'][6:8]
-        # 【修正】 p['...'] はPython插值なので単一カッコ `{}` に
+        # p['img'] は index.html から見たローカルパス (images/...)
         archive_cards_html += f"""
         <a href="{p['url']}" class="group block card rounded-2xl overflow-hidden hover:border-red-600 transition shadow-sm">
             <img src="{p['img']}" class="w-full h-32 object-cover group-hover:scale-105 transition duration-500">
@@ -78,8 +103,6 @@ try:
             </div>
         </a>"""
 
-    # --- 6. HTMLテンプレート ---
-    # 【修正】 v['...'] と s["..."] はPython插值なので単一カッコ `{}` に
     vocab_html = "".join([f"<li><p class='text-sm font-black'>{v['w']}</p><p class='text-xs opacity-50 mt-1'>{v['m']}</p></li>" for v in data['vocab']])
     segments_html = "".join([f"""
         <div class="grid md:grid-cols-2 gap-8 border-b border-slate-200 pb-8">
@@ -91,8 +114,9 @@ try:
         </div>
     """ for s in data['segments']])
 
-    # 【修正】 full_htmlテンプレート全体のカッコを見直し
-    # CSSの { } は {{ }} にエスケープし、Python插值の { } は単一に。
+    # --- 6. HTML全体の組み立て (カッコ修正は前回のまま踏襲) ---
+    # CSSの { } は {{ }} にエスケープし、Python插値の { } は単一に。
+    # メイン画像srcをローカルパスに変更
     full_html = f"""
 <!DOCTYPE html>
 <html lang="ja">
@@ -125,7 +149,7 @@ try:
             <h3 class="text-2xl font-bold text-slate-500 leading-snug">{data['jp_title']}</h3>
         </div>
 
-        <img src="{img_url}" onerror="this.src='{fallback_img_url}'" class="w-full h-64 md:h-96 object-cover rounded-3xl mb-16 shadow-2xl border border-slate-200">
+        <img src="{image_src_path}" class="w-full h-64 md:h-96 object-cover rounded-3xl mb-16 shadow-2xl border border-slate-200">
 
         <div class="grid lg:grid-cols-4 gap-12">
             <div class="lg:col-span-3 space-y-16">
@@ -164,19 +188,34 @@ try:
     """
 
     # --- 7. ファイル保存 ---
-    with open("index.html", "w", encoding="utf-8") as f: f.write(full_html)
-    with open(f"archive/{new_slug}.html", "w", encoding="utf-8") as f: f.write(full_html)
+    # 最新版を root に保存
+    with open("index.html", "w", encoding="utf-8") as f:
+        f.write(full_html)
+    
+    # 【変更】 アーカイブ用HTMLを保存する際に、パスを相対パスに置換
+    # rootからのローカルパス (images/...) を、archive/ フォルダから見たローカルパス (../images/...) に置換
+    archive_html = full_html.replace(f'src="{image_src_path}"', f'src="../{image_src_path}"')
+    
+    # 過去記事カードの src="images/..." を src="../images/..." に置換
+    archive_html = archive_html.replace('src="images/', 'src="../images/')
+    
+    # 過去記事カードの href="archive/..." を href="..." に置換
+    # (自分自身へのリンクも相対パスになる)
+    archive_html = archive_html.replace('href="archive/', 'href="')
+    
+    with open(f"archive/{new_slug}.html", "w", encoding="utf-8") as f:
+        f.write(archive_html)
 
-    # サイトマップ自動更新
+    # サイトマップ作成 (前回のカッコ修正のまま)
     sitemap = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
     sitemap += '  <url><loc>https://chika0415.github.io/geo-lect/</loc></url>\n'
     for p in posts:
-        # 【修正】 p["..."] はPython插值なので単一カッコ `{}` に
         sitemap += f'  <url><loc>https://chika0415.github.io/geo-lect/{p["url"]}</loc></url>\n'
     sitemap += '</urlset>'
-    with open("sitemap.xml", "w", encoding="utf-8") as f: f.write(sitemap)
+    with open("sitemap.xml", "w", encoding="utf-8") as f:
+        f.write(sitemap)
 
-    print(f"Success: {new_slug} created with dynamic image and corrected HTML.")
+    print(f"Success: {new_slug} created with local image saved.")
 
 except Exception as e:
     print(f"Error occurred: {e}")
