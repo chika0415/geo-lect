@@ -1,29 +1,36 @@
 name: Daily Article Update
+
 on:
   schedule:
-    # 毎日 UTC 9:00（日本時間18:00）と 21:00（日本時間06:00）に実行
+    # 日本時間の 06:00 (UTC 21:00) と 18:00 (UTC 09:00)
     - cron: '0 9,21 * * *'
-  workflow_dispatch: # 手動でいつでも実行できるように残しておく
+  workflow_dispatch: # 手動実行ボタンを表示させるための設定
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
+
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.x'
+          python-version: '3.9'
+
       - name: Install dependencies
-       run: pip install google-generativeai requests
+        run: |
+          pip install google-generativeai requests
+
       - name: Run script
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: python update_article.py
+
       - name: Commit and Push
         run: |
           git config --global user.name "Auto-Bot"
           git config --global user.email "bot@example.com"
-          git add .  # ← index.html だけでなく、全ての変更（archiveフォルダ等）を追加する
-          git commit -m "Update Article and Archive"
+          git add .
+          git commit -m "Update Article and Archive with Images" || echo "No changes to commit"
           git push
