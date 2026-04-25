@@ -3,8 +3,9 @@ import json
 import datetime
 import google.generativeai as genai
 
-# --- 1. API設定 (安定版モデルを指定) ---
+# --- 1. API設定 (確実に動くモデル名を指定) ---
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+# 'models/' プレフィックスを外した安定版の名称を使用
 model = genai.GenerativeModel('gemini-1.5-flash')
 
 # --- 2. 時刻の準備 ---
@@ -12,10 +13,10 @@ now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9)))
 display_date = now.strftime("%Y/%m/%d %H:%M")
 date_id = now.strftime("%Y%m%d")
 
-# --- 3. 生成プロンプト ---
+# --- 3. 生成プロンプト (政治・経済) ---
 prompt = f"""
-最新の「世界政治」または「国際経済」のニュースを1つ選び、英語学習教材をJSON形式で作成してください。
-必ず以下の構造のみを出力してください：
+最新の「世界政治」または「国際経済」のニュースを1つ選び、学習コンテンツを作成してください。
+必ず以下のJSON形式のみを出力してください（余計な説明は不要）：
 {{
   "en_title": "英語見出し",
   "jp_title": "日本語見出し",
@@ -49,40 +50,42 @@ try:
             "slug": new_slug,
             "url": f"archive/{new_slug}.html"
         })
-    posts = posts[:100] 
+    posts = posts[:100] # 最大100件保存
     with open(db_file, "w", encoding="utf-8") as f:
         json.dump(posts, f, ensure_ascii=False, indent=2)
 
-    # --- 5. パーツ組み立てロジック ---
+    # --- 5. HTML生成用関数 (パス管理を厳密化) ---
     def gen_cards(items, is_root=True):
         prefix = "" if is_root else "../"
         html = ""
         for p in items:
             date_fmt = f"{p['date_id'][:4]}/{p['date_id'][4:6]}/{p['date_id'][6:8]}"
-            url = p['url'] if is_root else p['url'].replace("archive/", "")
+            # archiveフォルダ内から見る場合は、URLの頭の 'archive/' を削る
+            target_url = p['url'] if is_root else p['url'].replace("archive/", "")
             html += f"""
-            <a href="{prefix}{url}" class="group block card rounded-2xl p-5 border border-slate-700/10 hover:border-red-600 transition bg-white shadow-sm">
+            <a href="{prefix}{target_url}" class="group block card rounded-2xl p-5 border border-slate-700/10 hover:border-red-600 transition bg-white shadow-sm">
                 <span class="text-[10px] text-slate-400 font-bold uppercase sans">{date_fmt}</span>
                 <h5 class="text-sm font-bold mt-1 group-hover:text-red-600 transition line-clamp-2 leading-tight serif">{p['title']}</h5>
             </a>"""
         return html
 
-    stocks_html = "".join([f'<a href="https://jp.tradingview.com/symbols/TSE-{s["code"]}/" target="_blank" class="block p-3 border rounded-xl hover:bg-slate-50 mb-2 shadow-sm"><p class="text-[10px] font-bold text-blue-600">TSE: {s["code"]}</p><p class="text-xs font-black">{s["name"]}</p></a>' for s in data['stocks']])
-    vocab_html = "".join([f"<li><p class='text-sm font-black'>{v['w']}</p><p class='text-xs opacity-50'>{v['m']}</p></li>" for v in data['vocab']])
-    segments_html = "".join([f'<div class="grid md:grid-cols-2 gap-8 pb-8 border-b mb-8"><div class="text-xl serif leading-relaxed">{s["en"]}</div><div class="text-lg opacity-70 italic border-l-4 border-red-600/30 pl-6 serif font-bold">{s["jp"]}</div></div>' for s in data['segments']])
-    
-    quiz_html = ""
-    for i, q in enumerate(data['quiz']):
-        opts = "".join([f'<button onclick="checkQuiz({i}, {j})" class="block w-full text-left p-3 border rounded-lg text-sm hover:bg-white transition">{opt}</button>' for j, opt in enumerate(q['options'])])
-        quiz_html += f'<div class="mb-6 p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl"><p class="font-bold mb-4">Q{i+1}. {q["q"]}</p><div class="space-y-2">{opts}</div><p id="q{i}-exp" class="hidden text-xs text-slate-500 mt-4 pt-4 border-t italic">{q["exp"]}</p></div>'
-
-    # --- 6. テンプレート統合関数 ---
-    def build_page(main_section, is_root=True):
+    def build_full_html(is_root=True):
+        # パスの深さに応じてリンクを調整
         prefix = "" if is_root else "../"
-        archive_link = "archive.html" if is_root else "../archive.html"
         home_link = "index.html" if is_root else "../index.html"
+        archive_link = "archive.html" if is_root else "../archive.html"
         latest_4 = gen_cards(posts[1:5], is_root)
         
+        # コンテンツの埋め込み
+        stocks_html = "".join([f'<a href="https://jp.tradingview.com/symbols/TSE-{s["code"]}/" target="_blank" class="block p-3 border rounded-xl hover:bg-slate-50 mb-2 shadow-sm"><p class="text-[10px] font-bold text-blue-600">TSE: {s["code"]}</p><p class="text-xs font-black">{s["name"]}</p></a>' for s in data['stocks']])
+        vocab_html = "".join([f"<li><p class='text-sm font-black'>{v['w']}</p><p class='text-xs opacity-50'>{v['m']}</p></li>" for v in data['vocab']])
+        segments_html = "".join([f'<div class="grid md:grid-cols-2 gap-8 pb-8 border-b mb-8"><div class="text-xl serif leading-relaxed">{s["en"]}</div><div class="text-lg opacity-70 italic border-l-4 border-red-600/30 pl-6 serif font-bold">{s["jp"]}</div></div>' for s in data['segments']])
+        
+        quiz_html = ""
+        for i, q in enumerate(data['quiz']):
+            opts = "".join([f'<button onclick="checkQuiz({i}, {j})" class="block w-full text-left p-3 border rounded-lg text-sm hover:bg-white transition">{opt}</button>' for j, opt in enumerate(q['options'])])
+            quiz_html += f'<div class="mb-6 p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl"><p class="font-bold mb-4">Q{i+1}. {q["q"]}</p><div class="space-y-2">{opts}</div><p id="q{i}-exp" class="hidden text-xs text-slate-500 mt-4 pt-4 border-t italic">{q["exp"]}</p></div>'
+
         return f"""
 <!DOCTYPE html>
 <html lang="ja">
@@ -104,53 +107,13 @@ try:
         <a href="{home_link}"><h1 class="text-3xl font-black italic serif">GEO-<span class="text-red-600">LECT</span></h1></a>
         <div class="flex items-center space-x-4">
             <span class="bg-blue-100 text-blue-700 text-[10px] font-black px-3 py-1 rounded-full border border-blue-200">TOEIC {data['toeic_level']}</span>
-            <button onclick="document.body.classList.toggle('dark')" class="p-2 border rounded-full text-xs font-bold">MODE</button>
+            <button onclick="document.body.classList.toggle('dark')" class="p-2 border rounded-full text-xs font-bold uppercase">Mode</button>
         </div>
     </header>
 
     <main class="max-w-7xl mx-auto px-6 py-12">
-        {main_section}
-    </main>
-
-    <div class="fixed bottom-0 left-0 right-0 bg-slate-900 text-white p-4 z-50 border-t border-slate-700 backdrop-blur-md bg-opacity-90">
-        <div class="max-w-4xl mx-auto flex items-center justify-between">
-            <div class="flex items-center space-x-8 mx-auto">
-                <button id="playBtn" onclick="togglePlay()" class="bg-white text-slate-900 w-12 h-12 rounded-full flex items-center justify-center font-bold">▶</button>
-                <button onclick="resetAudio()" class="text-[10px] font-bold border border-white/20 px-3 py-1 rounded">RESET</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const quizData = {json.dumps(data['quiz'], ensure_ascii=False)};
-        const speech = new SpeechSynthesisUtterance({json.dumps(data['full_text_en'], ensure_ascii=False)});
-        speech.lang = 'en-US'; speech.rate = 0.9;
-        let isPlaying = false;
-        function togglePlay() {{
-            const btn = document.getElementById('playBtn');
-            if (!isPlaying) {{
-                if (window.speechSynthesis.paused) window.speechSynthesis.resume();
-                else window.speechSynthesis.speak(speech);
-                btn.innerText = "II"; isPlaying = true;
-            }} else {{ window.speechSynthesis.pause(); btn.innerText = "▶"; isPlaying = false; }}
-        }}
-        function resetAudio() {{ window.speechSynthesis.cancel(); isPlaying = false; document.getElementById('playBtn').innerText = "▶"; }}
-        function checkQuiz(qIdx, optIdx) {{
-            const exp = document.getElementById(`q${{qIdx}}-exp`);
-            if (exp) exp.classList.remove('hidden');
-            alert(optIdx === quizData[qIdx].ans ? "Correct! 🎯" : "Incorrect! ✍️");
-        }}
-        speech.onend = () => {{ document.getElementById('playBtn').innerText = "▶"; isPlaying = false; }};
-    </script>
-</body>
-</html>
-"""
-
-    # --- 7. 各ページのメインコンテンツ構築 ---
-    latest_4_root = gen_cards(posts[1:5], True)
-    article_part = f"""
         <div class="card rounded-3xl p-12 bg-gradient-to-br {data['bg_gradient']} mb-16 text-white shadow-2xl">
-            <div class="text-white/60 font-bold mb-4 tracking-widest text-[10px] uppercase">● {display_date} ANALYSIS</div>
+            <div class="text-white/60 font-bold mb-4 tracking-widest text-[10px] uppercase sans">● {display_date} ANALYSIS</div>
             <h2 class="text-4xl md:text-6xl font-black mb-6 serif uppercase tracking-tighter leading-tight">{data['en_title']}</h2>
             <h3 class="text-2xl font-bold text-white/80 leading-snug serif">{data['jp_title']}</h3>
         </div>
@@ -166,18 +129,20 @@ try:
                     <h4 class="text-2xl font-bold mb-8 serif uppercase border-b pb-4">Understanding Check</h4>
                     {quiz_html}
                 </section>
+                
                 <section class="mt-20">
                     <div class="flex justify-between items-center mb-8 border-b pb-2">
                         <h4 class="font-bold text-xs uppercase tracking-widest opacity-40 sans">Latest Intelligence</h4>
-                        <a href="PLACEHOLDER_ARCHIVE_LINK" class="text-[10px] font-bold text-red-600 hover:underline tracking-widest">VIEW ALL DATABASE →</a>
+                        <a href="{archive_link}" class="text-[10px] font-bold text-red-600 hover:underline">VIEW ALL DATABASE →</a>
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">PLACEHOLDER_LATEST_CARDS</div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">{latest_4}</div>
                 </section>
             </div>
+
             <aside class="space-y-8">
                 <div class="card p-6 rounded-2xl shadow-sm bg-slate-900 text-white text-center">
-                    <h4 class="font-bold mb-4 text-[10px] uppercase tracking-widest opacity-60">All Intelligence</h4>
-                    <a href="PLACEHOLDER_ARCHIVE_LINK" class="block w-full py-3 bg-red-600 rounded-xl text-xs font-bold hover:bg-red-700 transition">OPEN DATABASE</a>
+                    <h4 class="font-bold mb-4 text-[10px] uppercase tracking-widest opacity-60">Database Archive</h4>
+                    <a href="{archive_link}" class="block w-full py-3 bg-red-600 rounded-xl text-xs font-bold hover:bg-red-700 transition">OPEN DATABASE</a>
                 </div>
                 <div class="card p-6 rounded-2xl">
                     <h4 class="font-bold mb-4 text-[10px] uppercase tracking-widest text-slate-400 border-b pb-2 tracking-tighter">Market Trends</h4>
@@ -198,29 +163,65 @@ try:
                 </div>
             </aside>
         </div>
-    """
+    </main>
 
-    # --- 8. 各ファイルへの保存 (ここでバグを完全に潰す) ---
-    # index.html
-    index_body = article_part.replace("PLACEHOLDER_ARCHIVE_LINK", "archive.html").replace("PLACEHOLDER_LATEST_CARDS", latest_4_root)
+    <div class="fixed bottom-0 left-0 right-0 bg-slate-900 text-white p-4 z-50 border-t border-slate-700 backdrop-blur-md bg-opacity-90">
+        <div class="max-w-4xl mx-auto flex items-center justify-between">
+            <div class="flex items-center space-x-8 mx-auto">
+                <button id="playBtn" onclick="togglePlay()" class="bg-white text-slate-900 w-12 h-12 rounded-full flex items-center justify-center font-bold shadow-lg">▶</button>
+                <button onclick="resetAudio()" class="text-[10px] font-bold border border-white/20 px-3 py-1 rounded">RESET</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const quizData = {json.dumps(data['quiz'], ensure_ascii=False)};
+        const speech = new SpeechSynthesisUtterance({json.dumps(data['full_text_en'], ensure_ascii=False)});
+        speech.lang = 'en-US'; speech.rate = 0.9;
+        let isPlaying = false;
+        function togglePlay() {{
+            const btn = document.getElementById('playBtn');
+            if (!isPlaying) {{
+                if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+                else window.speechSynthesis.speak(speech);
+                btn.innerText = "II"; isPlaying = true;
+            }} else {{ window.speechSynthesis.pause(); btn.innerText = "▶"; isPlaying = false; }}
+        }}
+        function resetAudio() {{ window.speechSynthesis.cancel(); isPlaying = false; document.getElementById('playBtn').innerText = "▶"; }}
+        function checkQuiz(qIdx, optIdx) {{
+            document.getElementById(`q${{qIdx}}-exp`).classList.remove('hidden');
+            alert(optIdx === quizData[qIdx].ans ? "Correct! 🎯" : "Incorrect! ✍️");
+        }}
+        speech.onend = () => {{ document.getElementById('playBtn').innerText = "▶"; isPlaying = false; }};
+    </script>
+</body>
+</html>
+"""
+
+    # --- 7. 保存処理 (index, archive_list, article) ---
     with open("index.html", "w", encoding="utf-8") as f:
-        f.write(build_page(index_body, True))
+        f.write(build_full_html(is_root=True))
 
-    # archive.html
+    # 全記事一覧 (archive.html)
     all_cards = gen_cards(posts, True)
-    archive_body = f"""
+    archive_list_section = f"""
     <div class="py-12">
         <h2 class="text-4xl font-black serif mb-12 border-b-4 border-red-600 inline-block uppercase tracking-tighter">Intelligence Database</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">{all_cards}</div>
     </div>"""
+    # 簡易テンプレート（article_partを丸ごと差し替え）
+    # ※ここでは個別記事のデザインではなく一覧用のHTMLを流し込む
     with open("archive.html", "w", encoding="utf-8") as f:
-        f.write(build_page(archive_body, True))
+        # build_full_htmlを改造して中身を差し替えたものを出力
+        content = build_full_html(is_root=True)
+        # 本文部分（<main>の中身）を無理やり一覧用に差し替え
+        import re
+        content = re.sub(r'<main.*?</main>', f'<main class="max-w-7xl mx-auto px-6 py-12">{archive_list_section}</main>', content, flags=re.DOTALL)
+        f.write(content)
 
-    # archive/個別
-    latest_4_rel = gen_cards(posts[1:5], False)
-    article_body_rel = article_part.replace("PLACEHOLDER_ARCHIVE_LINK", "../archive.html").replace("PLACEHOLDER_LATEST_CARDS", latest_4_rel)
+    # 個別記事
     with open(f"archive/{new_slug}.html", "w", encoding="utf-8") as f:
-        f.write(build_page(article_body_rel, False))
+        f.write(build_full_html(is_root=False))
 
     print(f"Update Success: {new_slug}")
 
