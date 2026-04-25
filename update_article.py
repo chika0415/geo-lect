@@ -3,9 +3,9 @@ import json
 import datetime
 import google.generativeai as genai
 
-# --- 1. API設定 ---
+# --- 1. API設定 (安定版モデルを指定) ---
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
-model = genai.GenerativeModel('models/gemini-1.5-flash-latest')
+model = genai.GenerativeModel('gemini-1.5-flash')
 
 # --- 2. 時刻の準備 ---
 now = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9)))
@@ -14,8 +14,8 @@ date_id = now.strftime("%Y%m%d")
 
 # --- 3. 生成プロンプト ---
 prompt = f"""
-最新の「世界政治」または「国際経済」のニュースを1つ選び、学習コンテンツを作成してください。
-以下のJSON形式のみを出力してください（余計なテキストは不要）：
+最新の「世界政治」または「国際経済」のニュースを1つ選び、英語学習教材をJSON形式で作成してください。
+必ず以下の構造のみを出力してください：
 {{
   "en_title": "英語見出し",
   "jp_title": "日本語見出し",
@@ -24,7 +24,7 @@ prompt = f"""
   "toeic_level": "推奨スコア (例: 850+)",
   "bg_gradient": "Tailwindグラデーション (例: from-blue-900 to-black)",
   "full_text_en": "読み上げ用全文",
-  "segments": [{{ "en": "英文1", "jp": "和訳1" }}, {{ "en": "英文2", "jp": "和訳2" }}],
+  "segments": [{{ "en": "英文1", "jp": "和訳1" }}],
   "stocks": [{{ "name": "企業名", "code": "コード4桁" }}],
   "quiz": [{{ "q": "問題", "options": ["A", "B", "C"], "ans": 0, "exp": "解説" }}],
   "advice": "専門的アドバイス",
@@ -37,7 +37,7 @@ try:
     raw_json = response.text.replace("```json", "").replace("```", "").strip()
     data = json.loads(raw_json)
 
-    # 4. データベース更新
+    # --- 4. データベース更新 (posts.json) ---
     db_file = "posts.json"
     posts = json.load(open(db_file, "r", encoding="utf-8")) if os.path.exists(db_file) else []
     new_slug = f"{date_id}-{data['slug']}"
@@ -53,7 +53,7 @@ try:
     with open(db_file, "w", encoding="utf-8") as f:
         json.dump(posts, f, ensure_ascii=False, indent=2)
 
-    # 5. パーツ組み立て関数
+    # --- 5. パーツ組み立てロジック ---
     def gen_cards(items, is_root=True):
         prefix = "" if is_root else "../"
         html = ""
@@ -76,18 +76,19 @@ try:
         opts = "".join([f'<button onclick="checkQuiz({i}, {j})" class="block w-full text-left p-3 border rounded-lg text-sm hover:bg-white transition">{opt}</button>' for j, opt in enumerate(q['options'])])
         quiz_html += f'<div class="mb-6 p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl"><p class="font-bold mb-4">Q{i+1}. {q["q"]}</p><div class="space-y-2">{opts}</div><p id="q{i}-exp" class="hidden text-xs text-slate-500 mt-4 pt-4 border-t italic">{q["exp"]}</p></div>'
 
-    # 6. HTMLテンプレート生成
-    def get_full_page(main_content, latest_cards, is_root=True):
+    # --- 6. テンプレート統合関数 ---
+    def build_page(main_section, is_root=True):
         prefix = "" if is_root else "../"
         archive_link = "archive.html" if is_root else "../archive.html"
         home_link = "index.html" if is_root else "../index.html"
+        latest_4 = gen_cards(posts[1:5], is_root)
         
         return f"""
 <!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{data['en_title']} | GEO-LECT</title>
+    <title>{data['en_title']} | GEO-LECT Intelligence</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <style>
@@ -103,19 +104,19 @@ try:
         <a href="{home_link}"><h1 class="text-3xl font-black italic serif">GEO-<span class="text-red-600">LECT</span></h1></a>
         <div class="flex items-center space-x-4">
             <span class="bg-blue-100 text-blue-700 text-[10px] font-black px-3 py-1 rounded-full border border-blue-200">TOEIC {data['toeic_level']}</span>
-            <button onclick="document.body.classList.toggle('dark')" class="p-2 border rounded-full text-xs font-bold uppercase">Mode</button>
+            <button onclick="document.body.classList.toggle('dark')" class="p-2 border rounded-full text-xs font-bold">MODE</button>
         </div>
     </header>
 
     <main class="max-w-7xl mx-auto px-6 py-12">
-        {main_content}
+        {main_section}
     </main>
 
     <div class="fixed bottom-0 left-0 right-0 bg-slate-900 text-white p-4 z-50 border-t border-slate-700 backdrop-blur-md bg-opacity-90">
         <div class="max-w-4xl mx-auto flex items-center justify-between">
             <div class="flex items-center space-x-8 mx-auto">
-                <button id="playBtn" onclick="togglePlay()" class="bg-white text-slate-900 w-12 h-12 rounded-full flex items-center justify-center font-bold shadow-lg shadow-black/20 hover:scale-105 transition">▶</button>
-                <button onclick="resetAudio()" class="text-[10px] font-bold border border-white/20 px-3 py-1 rounded hover:bg-white/10 transition">RESET</button>
+                <button id="playBtn" onclick="togglePlay()" class="bg-white text-slate-900 w-12 h-12 rounded-full flex items-center justify-center font-bold">▶</button>
+                <button onclick="resetAudio()" class="text-[10px] font-bold border border-white/20 px-3 py-1 rounded">RESET</button>
             </div>
         </div>
     </div>
@@ -125,41 +126,29 @@ try:
         const speech = new SpeechSynthesisUtterance({json.dumps(data['full_text_en'], ensure_ascii=False)});
         speech.lang = 'en-US'; speech.rate = 0.9;
         let isPlaying = false;
-
         function togglePlay() {{
             const btn = document.getElementById('playBtn');
             if (!isPlaying) {{
-                if (window.speechSynthesis.paused) {{ window.speechSynthesis.resume(); }}
-                else {{ window.speechSynthesis.speak(speech); }}
+                if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+                else window.speechSynthesis.speak(speech);
                 btn.innerText = "II"; isPlaying = true;
-            }} else {{
-                window.speechSynthesis.pause();
-                btn.innerText = "▶"; isPlaying = false;
-            }}
+            }} else {{ window.speechSynthesis.pause(); btn.innerText = "▶"; isPlaying = false; }}
         }}
-        function resetAudio() {{
-            window.speechSynthesis.cancel();
-            isPlaying = false;
-            document.getElementById('playBtn').innerText = "▶";
-        }}
+        function resetAudio() {{ window.speechSynthesis.cancel(); isPlaying = false; document.getElementById('playBtn').innerText = "▶"; }}
         function checkQuiz(qIdx, optIdx) {{
             const exp = document.getElementById(`q${{qIdx}}-exp`);
             if (exp) exp.classList.remove('hidden');
             alert(optIdx === quizData[qIdx].ans ? "Correct! 🎯" : "Incorrect! ✍️");
         }}
-        speech.onend = () => {{
-            document.getElementById('playBtn').innerText = "▶";
-            isPlaying = false;
-        }};
+        speech.onend = () => {{ document.getElementById('playBtn').innerText = "▶"; isPlaying = false; }};
     </script>
 </body>
 </html>
 """
 
-    # 7. ページ別コンテンツ構築
-    latest_4 = gen_cards(posts[1:5], is_root=True)
-    
-    article_body = f"""
+    # --- 7. 各ページのメインコンテンツ構築 ---
+    latest_4_root = gen_cards(posts[1:5], True)
+    article_part = f"""
         <div class="card rounded-3xl p-12 bg-gradient-to-br {data['bg_gradient']} mb-16 text-white shadow-2xl">
             <div class="text-white/60 font-bold mb-4 tracking-widest text-[10px] uppercase">● {display_date} ANALYSIS</div>
             <h2 class="text-4xl md:text-6xl font-black mb-6 serif uppercase tracking-tighter leading-tight">{data['en_title']}</h2>
@@ -177,36 +166,30 @@ try:
                     <h4 class="text-2xl font-bold mb-8 serif uppercase border-b pb-4">Understanding Check</h4>
                     {quiz_html}
                 </section>
-                
                 <section class="mt-20">
                     <div class="flex justify-between items-center mb-8 border-b pb-2">
                         <h4 class="font-bold text-xs uppercase tracking-widest opacity-40 sans">Latest Intelligence</h4>
-                        <a href="archive.html" class="text-[10px] font-bold text-red-600 hover:underline">VIEW ALL ARCHIVES →</a>
+                        <a href="PLACEHOLDER_ARCHIVE_LINK" class="text-[10px] font-bold text-red-600 hover:underline tracking-widest">VIEW ALL DATABASE →</a>
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                        {latest_4}
-                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">PLACEHOLDER_LATEST_CARDS</div>
                 </section>
             </div>
-
             <aside class="space-y-8">
                 <div class="card p-6 rounded-2xl shadow-sm bg-slate-900 text-white text-center">
                     <h4 class="font-bold mb-4 text-[10px] uppercase tracking-widest opacity-60">All Intelligence</h4>
-                    <a href="archive.html" class="block w-full py-3 bg-red-600 rounded-xl text-xs font-bold hover:bg-red-700 transition">OPEN DATABASE</a>
+                    <a href="PLACEHOLDER_ARCHIVE_LINK" class="block w-full py-3 bg-red-600 rounded-xl text-xs font-bold hover:bg-red-700 transition">OPEN DATABASE</a>
                 </div>
                 <div class="card p-6 rounded-2xl">
                     <h4 class="font-bold mb-4 text-[10px] uppercase tracking-widest text-slate-400 border-b pb-2 tracking-tighter">Market Trends</h4>
                     <div class="tradingview-widget-container">
                         <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js" async>
-                        {{
-                          "colorTheme": "light", "showChart": false, "locale": "ja", "isTransparent": true, "width": "100%", "height": "250",
-                          "tabs": [ {{ "title": "Rates", "symbols": [ {{ "s": "FX:USDJPY" }}, {{ "s": "INDEX:N225" }}, {{ "s": "INDEX:SPX" }} ] }} ]
-                        }}
+                        {{ "colorTheme": "light", "showChart": false, "locale": "ja", "isTransparent": true, "width": "100%", "height": "250",
+                           "tabs": [ {{ "title": "Rates", "symbols": [ {{ "s": "FX:USDJPY" }}, {{ "s": "INDEX:N225" }}, {{ "s": "INDEX:SPX" }} ] }} ] }}
                         </script>
                     </div>
                 </div>
                 <div class="card p-6 rounded-2xl">
-                    <h4 class="font-bold mb-4 text-[10px] uppercase tracking-widest text-red-600 border-b pb-2 sans">Related Stocks</h4>
+                    <h4 class="font-bold mb-4 text-[10px] uppercase tracking-widest text-red-600 border-b pb-2 sans font-bold italic">Related Stocks</h4>
                     {stocks_html}
                 </div>
                 <div class="card p-6 rounded-2xl sticky top-24">
@@ -217,9 +200,11 @@ try:
         </div>
     """
 
+    # --- 8. 各ファイルへの保存 (ここでバグを完全に潰す) ---
     # index.html
+    index_body = article_part.replace("PLACEHOLDER_ARCHIVE_LINK", "archive.html").replace("PLACEHOLDER_LATEST_CARDS", latest_4_root)
     with open("index.html", "w", encoding="utf-8") as f:
-        f.write(get_full_page(article_body, latest_4, True))
+        f.write(build_page(index_body, True))
 
     # archive.html
     all_cards = gen_cards(posts, True)
@@ -229,14 +214,13 @@ try:
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">{all_cards}</div>
     </div>"""
     with open("archive.html", "w", encoding="utf-8") as f:
-        f.write(get_full_page(archive_body, "", True))
+        f.write(build_page(archive_body, True))
 
-    # archive/ 個別記事
+    # archive/個別
     latest_4_rel = gen_cards(posts[1:5], False)
-    # 個別記事用ボディ（パスの調整が必要な箇所を置換）
-    article_body_rel = article_body.replace('href="archive.html"', 'href="../archive.html"')
+    article_body_rel = article_part.replace("PLACEHOLDER_ARCHIVE_LINK", "../archive.html").replace("PLACEHOLDER_LATEST_CARDS", latest_4_rel)
     with open(f"archive/{new_slug}.html", "w", encoding="utf-8") as f:
-        f.write(get_full_page(article_body_rel, latest_4_rel, False))
+        f.write(build_page(article_body_rel, False))
 
     print(f"Update Success: {new_slug}")
 
